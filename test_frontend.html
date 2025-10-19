@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sick Leave Letter Processing</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 700px;
+        width: 100%;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        color: #333;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 1.1em;
+      }
+
+      .upload-section {
+        margin-bottom: 30px;
+      }
+
+      .file-input-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+      }
+
+      .file-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+
+      .file-input-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 40px 20px;
+        border: 3px dashed #667eea;
+        border-radius: 15px;
+        background: #f8f9ff;
+        color: #667eea;
+        font-size: 1.2em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .file-input-button:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      .file-input-button i {
+        margin-right: 10px;
+        font-size: 1.5em;
+      }
+
+      .file-list {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        display: none;
+      }
+
+      .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        margin: 5px 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .file-item span {
+        flex: 1;
+        color: #333;
+      }
+
+      .file-item .file-size {
+        color: #666;
+        font-size: 0.9em;
+        margin-left: 10px;
+      }
+
+      .config-section {
+        margin-bottom: 30px;
+      }
+
+      .config-section label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      .config-section input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.3s ease;
+      }
+
+      .config-section input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .process-button {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.2em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .process-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .process-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .result {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        display: none;
+      }
+
+      .result.success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+
+      .result.error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+
+      .processing-status {
+        margin-top: 20px;
+        padding: 20px;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        color: #856404;
+        display: none;
+      }
+
+      .processing-status h3 {
+        margin-bottom: 15px;
+        color: #856404;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .processing-steps {
+        list-style: none;
+        padding: 0;
+      }
+
+      .processing-steps li {
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .processing-steps li:last-child {
+        border-bottom: none;
+      }
+
+      .step-status {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .step-status.pending {
+        background: #e9ecef;
+        color: #6c757d;
+      }
+
+      .step-status.processing {
+        background: #ffc107;
+        color: white;
+        animation: pulse 1.5s infinite;
+      }
+
+      .step-status.completed {
+        background: #28a745;
+        color: white;
+      }
+
+      .step-status.error {
+        background: #dc3545;
+        color: white;
+      }
+
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+
+      .results-summary {
+        margin-top: 30px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        display: none;
+      }
+
+      .results-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .results-header h3 {
+        margin: 0;
+        font-size: 1.8em;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .results-header .success-icon {
+        font-size: 2em;
+        animation: bounce 2s infinite;
+      }
+
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        60% { transform: translateY(-5px); }
+      }
+
+      .results-body {
+        background: white;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0;
+        background: #f8f9ff;
+        border-bottom: 1px solid #e1e5e9;
+      }
+
+      .summary-card {
+        padding: 25px;
+        text-align: center;
+        border-right: 1px solid #e1e5e9;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .summary-card:last-child {
+        border-right: none;
+      }
+
+      .summary-card:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .summary-card .number {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 8px;
+        line-height: 1;
+      }
+
+      .summary-card .label {
+        color: #666;
+        font-size: 0.95em;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .records-section {
+        padding: 30px;
+      }
+
+      .records-title {
+        color: #333;
+        font-size: 1.4em;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .records-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .records-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .records-table th {
+        padding: 18px 15px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+      }
+
+      .records-table td {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: top;
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+      }
+
+      .records-table td:hover {
+        background-color: #e3f2fd;
+      }
+
+      .records-table tbody tr:hover {
+        background-color: #f8f9ff;
+      }
+
+      .records-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .record-index {
+        background: #667eea;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9em;
+      }
+
+      .no-data-message {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-style: italic;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+
+      .download-section {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 25px;
+        margin-top: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+      }
+
+      .download-section h4 {
+        margin: 0 0 15px 0;
+        font-size: 1.3em;
+        font-weight: 600;
+      }
+
+      .download-section p {
+        margin: 0 0 20px 0;
+        opacity: 0.9;
+      }
+
+      .download-button {
+        background: white;
+        color: #28a745;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .download-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Enhanced Results Controls */
+      .results-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .search-filter-group {
+        display: flex;
+        gap: 10px;
+        flex: 1;
+        min-width: 300px;
+      }
+
+      .search-box {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 25px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: white;
+      }
+
+      .search-box:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .filter-select {
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 25px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 150px;
+      }
+
+      .filter-select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .export-buttons {
+        display: flex;
+        gap: 10px;
+      }
+
+      .export-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .export-csv {
+        background: #28a745;
+        color: white;
+      }
+
+      .export-csv:hover {
+        background: #218838;
+        transform: translateY(-1px);
+      }
+
+      .export-print {
+        background: #6c757d;
+        color: white;
+      }
+
+      .export-print:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+      }
+
+      /* Table enhancements */
+      .table-container {
+        position: relative;
+        overflow-x: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .records-table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .highlight {
+        background-color: #fff3cd !important;
+        font-weight: 600;
+      }
+
+      .table-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #666;
+      }
+
+      .records-count {
+        font-weight: 600;
+        color: #333;
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .results-controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .search-filter-group {
+          min-width: auto;
+        }
+
+        .export-buttons {
+          justify-content: center;
+        }
+
+        .records-table {
+          font-size: 12px;
+        }
+
+        .records-table th,
+        .records-table td {
+          padding: 10px 8px;
+        }
+      }
+
+      .results-loading {
+        text-align: center;
+        padding: 40px;
+        color: #667eea;
+      }
+
+      .results-loading .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .copy-button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 10px;
+      }
+
+      .copy-button:hover {
+        background: #5a67d8;
+        transform: scale(1.05);
+      }
+
+      .copy-button.copied {
+        background: #28a745;
+      }
+
+      .fade-in {
+        animation: fadeIn 0.6s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .slide-up {
+        animation: slideUp 0.5s ease-out;
+      }
+
+      @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .summary-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+      }
+
+      .summary-card .number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #0c5460;
+        margin-bottom: 5px;
+      }
+
+      .summary-card .label {
+        color: #6c757d;
+        font-size: 0.9em;
+      }
+
+      .records-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .records-table th,
+      .records-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .records-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .records-table tr:hover {
+        background: #f8f9fa;
+      }
+
+      .records-table td {
+        font-size: 0.9em;
+      }
+
+      .download-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 10px;
+        text-align: center;
+        display: none;
+      }
+
+      .download-section h3 {
+        color: #155724;
+        margin-bottom: 15px;
+      }
+
+      .download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        background: #28a745;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .download-btn:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+      }
+
+      /* N8N Style Records Container */
+      .n8n-records-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+      }
+
+      .n8n-record-card {
+        background: #ffffff;
+        border: 1px solid #e0e6ed;
+        border-radius: 8px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .n8n-record-card:hover {
+        border-color: #ff6d5a;
+        box-shadow: 0 4px 12px rgba(255, 109, 90, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .n8n-record-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #ff6d5a 0%, #ff9472 100%);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .n8n-record-card:hover::before {
+        opacity: 1;
+      }
+
+      .n8n-record-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .n8n-record-number {
+        background: linear-gradient(135deg, #ff6d5a 0%, #ff9472 100%);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(255, 109, 90, 0.3);
+      }
+
+      .n8n-record-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        margin-left: 16px;
+      }
+
+      .n8n-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+      }
+
+      .n8n-status-text {
+        color: #10b981;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .n8n-record-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .n8n-action-btn {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #64748b;
+      }
+
+      .n8n-action-btn:hover {
+        background: #ff6d5a;
+        border-color: #ff6d5a;
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .n8n-record-content {
+        margin-top: 16px;
+      }
+
+      .n8n-field-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .n8n-field {
+        background: #f8fafc;
+        border-radius: 6px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+      }
+
+      .n8n-field:hover {
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+      }
+
+      .n8n-field-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+      }
+
+      .n8n-field-value {
+        font-size: 14px;
+        color: #1e293b;
+        font-weight: 500;
+        cursor: pointer;
+        word-break: break-word;
+        line-height: 1.4;
+      }
+
+      .n8n-field-value:hover {
+        color: #ff6d5a;
+      }
+
+      .n8n-record-details {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #f0f0f0;
+        animation: slideDown 0.3s ease;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .n8n-records-container {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .n8n-field-grid {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .n8n-record-header {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .n8n-record-status {
+          margin-left: 8px;
+        }
+      }
+
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        .n8n-record-card {
+          background: #1e293b;
+          border-color: #334155;
+          color: #f1f5f9;
+        }
+
+        .n8n-field {
+          background: #334155;
+          border-color: #475569;
+        }
+
+        .n8n-field-value {
+          color: #f1f5f9;
+        }
+
+        .n8n-field-label {
+          color: #94a3b8;
+        }
+
+        .n8n-action-btn {
+          background: #334155;
+          border-color: #475569;
+          color: #94a3b8;
+        }
+      }
+
+      .error-details {
+        margin-top: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #dc3545;
+      }
+
+      .error-details h4 {
+        color: #dc3545;
+        margin-bottom: 10px;
+      }
+
+      .error-details pre {
+        background: #f1f3f4;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 0.85em;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+
+      .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+      }
+
+      .modal-image {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: #bbb;
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .stat-label {
+        color: #666;
+        font-size: 0.9em;
+      }
+
+
+
+      .preview-image {
+        max-width: 300px;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 8px;
+        margin: 10px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        border: 2px solid #e1e5e9;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+
+      .preview-image:hover {
+        transform: scale(1.02);
+        border-color: #667eea;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      }
+
+      .preview-file {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: white;
+        border-radius: 8px;
+        margin: 5px;
+        border: 2px solid #e1e5e9;
+      }
+
+      .preview-file .file-type {
+        font-size: 1.5em;
+      }
+
+      .preview-file .file-name {
+        flex: 1;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .preview-file .open-btn {
+        padding: 6px 12px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85em;
+      }
+
+      .preview-file .open-btn:hover {
+        background: #5a6fd8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🏥 Sick Leave Letter Processing</h1>
+        <p>Upload medical certificates and receive structured Excel files</p>
+      </div>
+
+      <div class="info-box">
+        <h3>📋 Usage Instructions</h3>
+        <p>
+          1. Enter your n8n webhook URL below<br />
+          2. Select one or more medical certificate image files<br />
+          3. Click "Process Documents" to extract data<br />
+          4. Download the generated Excel file
+        </p>
+      </div>
+
+      <form id="uploadForm">
+        <div class="config-section">
+          <label for="webhookUrl">n8n Webhook URL:</label>
+          <input
+            type="url"
+            id="webhookUrl"
+            placeholder="https://your-n8n-instance.com/webhook/sick-leave-upload"
+            required
+          />
+          <small style="color: #666; font-size: 0.9em">
+            Example: https://n8n.yourdomain.com/webhook/sick-leave-upload
+          </small>
+        </div>
+
+        <div class="upload-section">
+          <div class="file-input-wrapper">
+            <input
+              type="file"
+              id="fileInput"
+              name="images"
+              multiple
+              accept="image/*,application/pdf,.pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.doc,.docx"
+              class="file-input"
+              required
+            />
+            <div class="file-input-button">
+              <i>📁</i>
+              <span>Select Files (Images, PDF, DOCX)</span>
+            </div>
+          </div>
+          <div id="fileList" class="file-list"></div>
+          
+
+          
+          <div id="previewSection" class="preview-section"></div>
+        </div>
+
+        <div id="stats" class="stats" style="display: none">
+          <div class="stat-item">
+            <div class="stat-number" id="fileCount">0</div>
+            <div class="stat-label">Files selected</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="totalSize">0 MB</div>
+            <div class="stat-label">Total size</div>
+          </div>
+        </div>
+
+        <button type="submit" class="process-button" id="processButton">
+          🚀 Process Documents
+        </button>
+      </form>
+
+      <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Processing your medical certificates...</p>
+        <small style="color: #666"
+          >This process may take a few minutes depending on the number of
+          images</small
+        >
+      </div>
+
+      <div id="result" class="result"></div>
+    </div>
+
+    <!-- Modal for enlarged image view -->
+    <div id="imageModal" class="modal">
+      <span class="close">&times;</span>
+      <div class="modal-content">
+        <img class="modal-image" id="modalImage" />
+      </div>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const fileList = document.getElementById("fileList");
+      const previewSection = document.getElementById("previewSection");
+      const uploadForm = document.getElementById("uploadForm");
+      const processButton = document.getElementById("processButton");
+      const loading = document.getElementById("loading");
+      const result = document.getElementById("result");
+      const webhookUrl = document.getElementById("webhookUrl");
+      const stats = document.getElementById("stats");
+      const fileCount = document.getElementById("fileCount");
+      const totalSize = document.getElementById("totalSize");
+      const modal = document.getElementById("imageModal");
+      const modalImage = document.getElementById("modalImage");
+      const closeModalBtn = document.getElementsByClassName("close")[0];
+      
+
+
+      // Load saved webhook URL
+      const savedUrl = localStorage.getItem("webhookUrl");
+      if (savedUrl) {
+        webhookUrl.value = savedUrl;
+      }
+      
+
+
+      // File input change handler
+      fileInput.addEventListener("change", function () {
+        const files = Array.from(this.files);
+
+        if (files.length > 0) {
+          displayFiles(files);
+          displayPreviews(files);
+          updateStats(files);
+        } else {
+          hideFileInfo();
+        }
+      });
+
+      function displayFiles(files) {
+        fileList.style.display = "block";
+        fileList.innerHTML = "<h4>📄 Selected Files:</h4>";
+
+        files.forEach((file, index) => {
+          const fileItem = document.createElement("div");
+          fileItem.className = "file-item";
+
+          const fileName = document.createElement("span");
+          fileName.textContent = `${index + 1}. ${file.name}`;
+
+          const fileSize = document.createElement("span");
+          fileSize.className = "file-size";
+          fileSize.textContent = formatFileSize(file.size);
+
+          fileItem.appendChild(fileName);
+          fileItem.appendChild(fileSize);
+          fileList.appendChild(fileItem);
+        });
+      }
+
+      function isPdf(file) {
+        return (
+          file.type === "application/pdf" ||
+          file.name.toLowerCase().endsWith(".pdf")
+        );
+      }
+
+      function isDoc(file) {
+        const t = file.type;
+        const n = file.name.toLowerCase();
+        return (
+          t === "application/msword" ||
+          t ===
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+          n.endsWith(".doc") ||
+          n.endsWith(".docx")
+        );
+      }
+
+      function displayPreviews(files) {
+        previewSection.style.display = "block";
+        previewSection.innerHTML = "<h4>🖼️ File Preview:</h4>";
+
+        files.forEach((file, index) => {
+          if (file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const img = document.createElement("img");
+              img.src = e.target.result;
+              img.className = "preview-image";
+              img.alt = `Preview ${index + 1}`;
+              img.title = `Click to enlarge - ${file.name}`;
+              
+              // Add loading attribute for better performance
+              img.loading = "lazy";
+
+              // Add click event to open modal
+              img.addEventListener("click", function () {
+                modalImage.src = e.target.result;
+                modal.style.display = "block";
+              });
+
+              previewSection.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+          } else if (isPdf(file)) {
+            const url = window.URL.createObjectURL(file);
+            const tile = document.createElement("div");
+            tile.className = "preview-file";
+            tile.innerHTML = `
+                        <span class="file-type">📕</span>
+                        <span class="file-name">${file.name}</span>
+                        <button class="open-btn" type="button">Open</button>
+                    `;
+            const btn = tile.querySelector(".open-btn");
+            btn.addEventListener("click", () => window.open(url, "_blank"));
+            previewSection.appendChild(tile);
+          } else if (isDoc(file)) {
+            const tile = document.createElement("div");
+            tile.className = "preview-file";
+            tile.innerHTML = `
+                        <span class="file-type">📄</span>
+                        <span class="file-name">${file.name}</span>
+                        <span style="color:#666;">DOC/DOCX</span>
+                    `;
+            previewSection.appendChild(tile);
+          }
+        });
+      }
+
+      function updateStats(files) {
+        const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+
+        fileCount.textContent = files.length;
+        totalSize.textContent = formatFileSize(totalBytes);
+        stats.style.display = "flex";
+      }
+
+      function hideFileInfo() {
+        fileList.style.display = "none";
+        previewSection.style.display = "none";
+        stats.style.display = "none";
+      }
+
+      // Modal close events
+      closeModalBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+      });
+
+      window.addEventListener("click", function (event) {
+        if (event.target === modal) {
+          modal.style.display = "none";
+        }
+      });
+
+      // Form submit handler
+      uploadForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        // Save webhook URL
+        localStorage.setItem("webhookUrl", webhookUrl.value);
+
+        const formData = new FormData();
+        const files = fileInput.files;
+
+        // Add all files to form data
+        for (let i = 0; i < files.length; i++) {
+          formData.append("images", files[i]);
+        }
+
+        // Show processing status
+        showProcessingStatus();
+        processButton.disabled = true;
+        result.style.display = "none";
+
+        try {
+          updateProcessingStep('upload', 'processing');
+          
+          const response = await fetch(webhookUrl.value, {
+            method: "POST",
+            body: formData,
+          });
+
+          updateProcessingStep('upload', 'completed');
+
+          if (response.ok) {
+            const contentType = response.headers.get("content-type");
+
+            if (contentType && (contentType.includes("spreadsheet") || contentType.includes("excel"))) {
+              // Handle Excel file download
+              updateProcessingStep('ocr', 'completed');
+              updateProcessingStep('structure', 'completed');
+              updateProcessingStep('excel', 'processing');
+              
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              
+              updateProcessingStep('excel', 'completed');
+              
+              // Show download section
+              showDownloadSection(url, files.length);
+              
+              showResult("success", `✅ Processing successful! Excel file created with ${files.length} records.`);
+            } else {
+              // Handle JSON response with detailed results
+              updateProcessingStep('ocr', 'completed');
+              updateProcessingStep('structure', 'processing');
+              
+              const data = await response.json();
+              
+              updateProcessingStep('structure', 'completed');
+              updateProcessingStep('excel', 'completed');
+              
+              // Show loading while processing results
+              showResultsLoading();
+              
+              // Add a small delay for better UX
+              setTimeout(() => {
+                // Show detailed results
+                showDetailedResults(data, files.length);
+                showResult("success", "✅ Processing completed! See detailed results below.");
+              }, 800);
+            }
+          } else {
+            const errorText = await response.text();
+            updateProcessingStep('upload', 'error');
+            showErrorDetails(response.status, errorText);
+            showResult("error", "❌ Processing error: " + errorText);
+          }
+        } catch (error) {
+          updateProcessingStep('upload', 'error');
+          showErrorDetails('Connection Error', error.message);
+          showResult(
+            "error",
+            "❌ Connection error: " + error.message +
+            "\n\nPlease check:\n- Is the webhook URL correct?\n- Is the n8n workflow activated?\n- Is the internet connection stable?"
+          );
+        } finally {
+          processButton.disabled = false;
+          hideProcessingStatus();
+        }
+      });
+
+      function showProcessingStatus() {
+        const processingStatus = document.getElementById('processingStatus');
+        if (!processingStatus) {
+          const statusDiv = document.createElement('div');
+          statusDiv.id = 'processingStatus';
+          statusDiv.className = 'processing-status';
+          statusDiv.innerHTML = `
+            <h3>🔄 Processing documents...</h3>
+            <ul class="processing-steps">
+              <li>
+                <div class="step-status pending" id="step-upload">1</div>
+                <span>Upload and convert images</span>
+              </li>
+              <li>
+                <div class="step-status pending" id="step-ocr">2</div>
+                <span>Extract text using OCR</span>
+              </li>
+              <li>
+                <div class="step-status pending" id="step-structure">3</div>
+                <span>Structure data with AI</span>
+              </li>
+              <li>
+                <div class="step-status pending" id="step-excel">4</div>
+                <span>Create Excel file</span>
+              </li>
+            </ul>
+          `;
+          document.querySelector('.container').appendChild(statusDiv);
+        }
+        document.getElementById('processingStatus').style.display = 'block';
+      }
+
+      function hideProcessingStatus() {
+        const processingStatus = document.getElementById('processingStatus');
+        if (processingStatus) {
+          setTimeout(() => {
+            processingStatus.style.display = 'none';
+          }, 2000);
+        }
+      }
+
+      function updateProcessingStep(step, status) {
+        const stepElement = document.getElementById(`step-${step}`);
+        if (stepElement) {
+          stepElement.className = `step-status ${status}`;
+          if (status === 'completed') {
+            stepElement.textContent = '✓';
+          } else if (status === 'error') {
+            stepElement.textContent = '✗';
+          } else if (status === 'processing') {
+            stepElement.textContent = '⟳';
+          }
+        }
+      }
+
+      function showResultsLoading() {
+        // Remove existing results
+        const existingSummary = document.getElementById('resultsSummary');
+        if (existingSummary) {
+          existingSummary.remove();
+        }
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'resultsSummary';
+        loadingDiv.className = 'results-summary';
+        loadingDiv.innerHTML = `
+          <div class="results-loading">
+            <div class="spinner"></div>
+            <h3>🔄 Processing Results...</h3>
+            <p>Analyzing extracted data and generating summary</p>
+          </div>
+        `;
+
+        document.querySelector('.container').appendChild(loadingDiv);
+        loadingDiv.style.display = 'block';
+        loadingDiv.classList.add('fade-in');
+      }
+
+      function showDetailedResults(data, fileCount) {
+        // Remove existing results summary
+        const existingSummary = document.getElementById('resultsSummary');
+        if (existingSummary) {
+          existingSummary.remove();
+        }
+
+        const summaryDiv = document.createElement('div');
+        summaryDiv.id = 'resultsSummary';
+        summaryDiv.className = 'results-summary';
+        
+        let records = [];
+        let totalRecords = 0;
+        
+        // Parse different response formats
+        if (Array.isArray(data)) {
+          records = data;
+          totalRecords = data.length;
+        } else if (data.records && Array.isArray(data.records)) {
+          records = data.records;
+          totalRecords = data.records.length;
+        } else if (data.data && Array.isArray(data.data)) {
+          records = data.data;
+          totalRecords = data.data.length;
+        } else {
+          // Single record
+          records = [data];
+          totalRecords = 1;
+        }
+
+        // Store original records for filtering
+        originalRecords = records;
+        
+        const hospitalsSet = new Set();
+        const departmentsSet = new Set();
+        
+        records.forEach(record => {
+          if (record.hospital_clinic) hospitalsSet.add(record.hospital_clinic);
+          if (record.department) departmentsSet.add(record.department);
+        });
+
+        summaryDiv.innerHTML = `
+          <div class="results-header">
+            <h3>
+              <span class="success-icon">🎉</span>
+              Processing Completed Successfully!
+            </h3>
+          </div>
+          <div class="results-body">
+            <div class="summary-stats">
+              <div class="summary-card">
+                <div class="number">${fileCount}</div>
+                <div class="label">Files Uploaded</div>
+              </div>
+              <div class="summary-card">
+                <div class="number">${totalRecords}</div>
+                <div class="label">Records Extracted</div>
+              </div>
+              <div class="summary-card">
+                <div class="number">${hospitalsSet.size}</div>
+                <div class="label">Hospitals/Clinics</div>
+              </div>
+              <div class="summary-card">
+                <div class="number">${departmentsSet.size}</div>
+                <div class="label">Departments</div>
+              </div>
+            </div>
+            
+            <div class="records-section">
+              ${records.length > 0 ? `
+                <h4 class="records-title">
+                  📋 Extracted Medical Records
+                </h4>
+                
+                <div class="results-controls">
+                  <div class="search-filter-group">
+                    <input type="text" class="search-box" id="recordSearch" placeholder="🔍 Search records..." onkeyup="filterRecords()">
+                    <select class="filter-select" id="hospitalFilter" onchange="filterRecords()">
+                      <option value="">All Hospitals</option>
+                      ${Array.from(hospitalsSet).map(hospital => `<option value="${hospital}">${hospital}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="export-buttons">
+                    <button class="export-btn export-csv" onclick="exportToCSV()">
+                      📊 Export CSV
+                    </button>
+                    <button class="export-btn export-print" onclick="printResults()">
+                      🖨️ Print
+                    </button>
+                  </div>
+                </div>
+
+                <div class="table-info">
+                  <span class="records-count" id="recordsCount">Showing ${records.length} of ${records.length} records</span>
+                  <span>Click any cell to copy data</span>
+                </div>
+
+                <div class="n8n-records-container" id="recordsContainer">
+                  ${records.map((record, index) => `
+                    <div class="n8n-record-card" data-record='${JSON.stringify(record)}' onclick="toggleRecordDetails(${index})">
+                      <div class="n8n-record-header">
+                        <div class="n8n-record-number">${index + 1}</div>
+                        <div class="n8n-record-status">
+                          <span class="n8n-status-dot"></span>
+                          <span class="n8n-status-text">Processed</span>
+                        </div>
+                        <div class="n8n-record-actions">
+                          <button class="n8n-action-btn" onclick="event.stopPropagation(); viewRecordDetails(${index})" title="View Details">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                          </button>
+                          <button class="n8n-action-btn" onclick="event.stopPropagation(); copyRecord(${index})" title="Copy Record">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div class="n8n-record-content">
+                        <div class="n8n-field-grid">
+                          <div class="n8n-field">
+                            <div class="n8n-field-label">Sick Leave Period</div>
+                            <div class="n8n-field-value" onclick="event.stopPropagation(); copyToClipboard('${record.sick_leave_period || '-'}')">${record.sick_leave_period || '-'}</div>
+                          </div>
+                          <div class="n8n-field">
+                            <div class="n8n-field-label">Hospital/Clinic</div>
+                            <div class="n8n-field-value" onclick="event.stopPropagation(); copyToClipboard('${record.hospital_clinic || '-'}')">${record.hospital_clinic || '-'}</div>
+                          </div>
+                          <div class="n8n-field">
+                            <div class="n8n-field-label">Department</div>
+                            <div class="n8n-field-value" onclick="event.stopPropagation(); copyToClipboard('${record.department || '-'}')">${record.department || '-'}</div>
+                          </div>
+                          <div class="n8n-field">
+                            <div class="n8n-field-label">Medical Condition</div>
+                            <div class="n8n-field-value" onclick="event.stopPropagation(); copyToClipboard('${record.nature_of_injury || '-'}')">${record.nature_of_injury || '-'}</div>
+                          </div>
+                        </div>
+                        
+                        <div class="n8n-record-details" id="recordDetails${index}" style="display: none;">
+                          <div class="n8n-field-grid">
+                            <div class="n8n-field">
+                              <div class="n8n-field-label">Hospitalization Period</div>
+                              <div class="n8n-field-value" onclick="event.stopPropagation(); copyToClipboard('${record.admission_period || '-'}')">${record.admission_period || '-'}</div>
+                            </div>
+                            <div class="n8n-field">
+                              <div class="n8n-field-label">Certificate Date</div>
+                              <div class="n8n-field-value" onclick="event.stopPropagation(); copyToClipboard('${record.date_of_medical_certificate || '-'}')">${record.date_of_medical_certificate || '-'}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : `
+                <div class="no-data-message">
+                  <p>📄 No medical records were extracted from the uploaded files.</p>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+
+        document.querySelector('.container').appendChild(summaryDiv);
+        summaryDiv.style.display = 'block';
+        summaryDiv.classList.add('fade-in');
+        
+        // Scroll to results
+        setTimeout(() => {
+          summaryDiv.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }
+
+      function showDownloadSection(downloadUrl, fileCount) {
+        // Remove existing download section
+        const existingDownload = document.getElementById('downloadSection');
+        if (existingDownload) {
+          existingDownload.remove();
+        }
+
+        const downloadDiv = document.createElement('div');
+        downloadDiv.id = 'downloadSection';
+        downloadDiv.className = 'download-section';
+        downloadDiv.innerHTML = `
+          <h4>📥 Download Your Results</h4>
+          <p>Excel file has been successfully created with ${fileCount} medical records.</p>
+          <a href="${downloadUrl}" download="sick_leave_records_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx" class="download-button">
+            📊 Download Excel File
+          </a>
+        `;
+
+        document.querySelector('.container').appendChild(downloadDiv);
+        downloadDiv.style.display = 'block';
+        downloadDiv.classList.add('slide-up');
+        
+        // Auto download
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = `sick_leave_records_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Clean up URL after download
+        setTimeout(() => {
+          window.URL.revokeObjectURL(downloadUrl);
+        }, 1000);
+        
+        // Scroll to download section
+        downloadDiv.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function showErrorDetails(status, message) {
+        // Remove existing error details
+        const existingError = document.getElementById('errorDetails');
+        if (existingError) {
+          existingError.remove();
+        }
+
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'errorDetails';
+        errorDiv.className = 'error-details';
+        errorDiv.innerHTML = `
+          <h4>Error Details</h4>
+        <p><strong>Error Code:</strong> ${status}</p>
+        <p><strong>Message:</strong> ${message}</p>
+        <p><strong>Troubleshooting Tips:</strong></p>
+        <ul>
+          <li>Check if the webhook URL is correct</li>
+          <li>Ensure the n8n workflow is activated</li>
+          <li>Check network connection</li>
+          <li>Try again with fewer files if files are too large</li>
+        </ul>
+        `;
+
+        document.querySelector('.container').appendChild(errorDiv);
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      }
+      
+
+
+      function showResult(type, message) {
+        result.className = `result ${type}`;
+        result.innerHTML = `<pre>${message}</pre>`;
+        result.style.display = "block";
+
+        // Scroll to result
+        result.scrollIntoView({ behavior: "smooth" });
+      }
+
+      // N8N Style Functions
+      function toggleRecordDetails(index) {
+        const detailsElement = document.getElementById(`recordDetails${index}`);
+        if (detailsElement) {
+          if (detailsElement.style.display === 'none') {
+            detailsElement.style.display = 'block';
+          } else {
+            detailsElement.style.display = 'none';
+          }
+        }
+      }
+
+      function viewRecordDetails(index) {
+        const record = originalRecords[index];
+        if (!record) return;
+
+        // Create modal for detailed view
+        const modal = document.createElement('div');
+        modal.className = 'n8n-modal-overlay';
+        modal.innerHTML = `
+          <div class="n8n-modal">
+            <div class="n8n-modal-header">
+              <h3>📋 Medical Record #${index + 1}</h3>
+              <button class="n8n-modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="n8n-modal-body">
+              <div class="n8n-detail-grid">
+                <div class="n8n-detail-field">
+                  <label>Sick Leave Period</label>
+                  <div class="n8n-detail-value">${record.sick_leave_period || '-'}</div>
+                </div>
+                <div class="n8n-detail-field">
+                  <label>Hospitalization Period</label>
+                  <div class="n8n-detail-value">${record.admission_period || '-'}</div>
+                </div>
+                <div class="n8n-detail-field">
+                  <label>Hospital/Clinic</label>
+                  <div class="n8n-detail-value">${record.hospital_clinic || '-'}</div>
+                </div>
+                <div class="n8n-detail-field">
+                  <label>Department</label>
+                  <div class="n8n-detail-value">${record.department || '-'}</div>
+                </div>
+                <div class="n8n-detail-field">
+                  <label>Medical Condition</label>
+                  <div class="n8n-detail-value">${record.nature_of_injury || '-'}</div>
+                </div>
+                <div class="n8n-detail-field">
+                  <label>Certificate Date</label>
+                  <div class="n8n-detail-value">${record.date_of_medical_certificate || '-'}</div>
+                </div>
+              </div>
+            </div>
+            <div class="n8n-modal-footer">
+              <button class="n8n-btn n8n-btn-secondary" onclick="closeModal()">Close</button>
+              <button class="n8n-btn n8n-btn-primary" onclick="copyRecord(${index})">Copy Record</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+        
+        // Add modal styles if not exists
+        if (!document.getElementById('n8n-modal-styles')) {
+          const modalStyles = document.createElement('style');
+          modalStyles.id = 'n8n-modal-styles';
+          modalStyles.textContent = `
+            .n8n-modal-overlay {
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: rgba(0, 0, 0, 0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 1000;
+              animation: fadeIn 0.2s ease;
+            }
+
+            .n8n-modal {
+              background: white;
+              border-radius: 12px;
+              max-width: 600px;
+              width: 90%;
+              max-height: 80vh;
+              overflow: hidden;
+              box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+              animation: slideIn 0.3s ease;
+            }
+
+            .n8n-modal-header {
+              padding: 20px;
+              border-bottom: 1px solid #e2e8f0;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              background: linear-gradient(135deg, #ff6d5a 0%, #ff9472 100%);
+              color: white;
+            }
+
+            .n8n-modal-header h3 {
+              margin: 0;
+              font-size: 18px;
+            }
+
+            .n8n-modal-close {
+              background: none;
+              border: none;
+              color: white;
+              font-size: 24px;
+              cursor: pointer;
+              padding: 0;
+              width: 30px;
+              height: 30px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+              transition: background 0.2s ease;
+            }
+
+            .n8n-modal-close:hover {
+              background: rgba(255, 255, 255, 0.2);
+            }
+
+            .n8n-modal-body {
+              padding: 20px;
+              max-height: 60vh;
+              overflow-y: auto;
+            }
+
+            .n8n-detail-grid {
+              display: grid;
+              gap: 16px;
+            }
+
+            .n8n-detail-field {
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 16px;
+              background: #f8fafc;
+            }
+
+            .n8n-detail-field label {
+              display: block;
+              font-size: 12px;
+              font-weight: 600;
+              color: #64748b;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 8px;
+            }
+
+            .n8n-detail-value {
+              font-size: 14px;
+              color: #1e293b;
+              font-weight: 500;
+              word-break: break-word;
+              line-height: 1.4;
+            }
+
+            .n8n-modal-footer {
+              padding: 20px;
+              border-top: 1px solid #e2e8f0;
+              display: flex;
+              gap: 12px;
+              justify-content: flex-end;
+              background: #f8fafc;
+            }
+
+            .n8n-btn {
+              padding: 10px 20px;
+              border-radius: 6px;
+              border: none;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.2s ease;
+            }
+
+            .n8n-btn-secondary {
+              background: #e2e8f0;
+              color: #64748b;
+            }
+
+            .n8n-btn-secondary:hover {
+              background: #cbd5e1;
+            }
+
+            .n8n-btn-primary {
+              background: #ff6d5a;
+              color: white;
+            }
+
+            .n8n-btn-primary:hover {
+              background: #ff5a47;
+              transform: translateY(-1px);
+            }
+
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+
+            @keyframes slideIn {
+              from { 
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+              }
+              to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+              }
+            }
+          `;
+          document.head.appendChild(modalStyles);
+        }
+      }
+
+      function closeModal() {
+        const modal = document.querySelector('.n8n-modal-overlay');
+        if (modal) {
+          modal.remove();
+        }
+      }
+
+      function copyRecord(index) {
+        const record = originalRecords[index];
+        if (!record) return;
+
+        const recordText = `Medical Record #${index + 1}
+Sick Leave Period: ${record.sick_leave_period || '-'}
+Hospitalization Period: ${record.admission_period || '-'}
+Hospital/Clinic: ${record.hospital_clinic || '-'}
+Department: ${record.department || '-'}
+Medical Condition: ${record.nature_of_injury || '-'}
+Certificate Date: ${record.date_of_medical_certificate || '-'}`;
+
+        navigator.clipboard.writeText(recordText).then(() => {
+          showToast('📋 Record copied to clipboard!', 'success');
+        }).catch(() => {
+          showToast('❌ Failed to copy record', 'error');
+        });
+      }
+
+      function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `n8n-toast n8n-toast-${type}`;
+        toast.textContent = message;
+        
+        // Add toast styles if not exists
+        if (!document.getElementById('n8n-toast-styles')) {
+          const toastStyles = document.createElement('style');
+          toastStyles.id = 'n8n-toast-styles';
+          toastStyles.textContent = `
+            .n8n-toast {
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              padding: 12px 20px;
+              border-radius: 8px;
+              color: white;
+              font-weight: 500;
+              z-index: 1001;
+              animation: toastSlideIn 0.3s ease;
+            }
+
+            .n8n-toast-success {
+              background: #10b981;
+            }
+
+            .n8n-toast-error {
+              background: #ef4444;
+            }
+
+            .n8n-toast-info {
+              background: #3b82f6;
+            }
+
+            @keyframes toastSlideIn {
+              from {
+                transform: translateX(100%);
+                opacity: 0;
+              }
+              to {
+                transform: translateX(0);
+                opacity: 1;
+              }
+            }
+          `;
+          document.head.appendChild(toastStyles);
+        }
+
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+
+      // Add drag and drop functionality
+      const fileInputButton = document.querySelector(".file-input-button");
+
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        fileInputButton.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        fileInputButton.addEventListener(eventName, highlight, false);
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        fileInputButton.addEventListener(eventName, unhighlight, false);
+      });
+
+      function highlight(e) {
+        fileInputButton.style.background = "#667eea";
+        fileInputButton.style.color = "white";
+      }
+
+      function unhighlight(e) {
+        fileInputButton.style.background = "#f8f9ff";
+        fileInputButton.style.color = "#667eea";
+      }
+
+      fileInputButton.addEventListener("drop", handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+
+        // Trigger change event
+        const event = new Event("change", { bubbles: true });
+        fileInput.dispatchEvent(event);
+      }
+
+      // Copy to clipboard function
+      function copyToClipboard(text) {
+        if (text === '-' || text === 'N/A') {
+          return; // Don't copy empty values
+        }
+        
+        navigator.clipboard.writeText(text).then(function() {
+          // Show temporary feedback
+          const notification = document.createElement('div');
+          notification.textContent = 'Copied to clipboard!';
+          notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          `;
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 2000);
+        }).catch(function(err) {
+          console.error('Could not copy text: ', err);
+        });
+      }
+
+      // Global variable to store original records
+      let originalRecords = [];
+
+      function filterRecords() {
+        const searchTerm = document.getElementById('recordSearch').value.toLowerCase();
+        const hospitalFilter = document.getElementById('hospitalFilter').value;
+        const recordsContainer = document.getElementById('n8nRecordsContainer');
+        const recordsCount = document.getElementById('recordsCount');
+        
+        if (!recordsContainer) return;
+
+        const cards = recordsContainer.querySelectorAll('.n8n-record-card');
+        let visibleCount = 0;
+
+        cards.forEach((card, index) => {
+          const record = JSON.parse(card.getAttribute('data-record'));
+          
+          // Search filter
+          const searchMatch = !searchTerm || 
+            Object.values(record).some(value => 
+              value && value.toString().toLowerCase().includes(searchTerm)
+            );
+
+          // Hospital filter
+          const hospitalMatch = !hospitalFilter || 
+            (record.hospital_clinic && record.hospital_clinic === hospitalFilter);
+
+          if (searchMatch && hospitalMatch) {
+            card.style.display = '';
+            card.classList.remove('filtered-out');
+            // Update record number
+            const recordNumber = card.querySelector('.n8n-record-number');
+            if (recordNumber) {
+              recordNumber.textContent = `#${++visibleCount}`;
+            }
+          } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-out');
+          }
+        });
+
+        // Update records count
+        if (recordsCount) {
+          recordsCount.textContent = `Showing ${visibleCount} of ${originalRecords.length} records`;
+        }
+      }
+
+      function exportToCSV() {
+        const recordsContainer = document.getElementById('n8nRecordsContainer');
+        if (!recordsContainer) return;
+
+        const cards = recordsContainer.querySelectorAll('.n8n-record-card:not(.filtered-out)');
+        const headers = ['No.', 'Sick Leave Period', 'Hospitalization Period', 'Hospital/Clinic', 'Department', 'Medical Condition', 'Certificate Date'];
+        
+        let csvContent = headers.join(',') + '\n';
+        
+        cards.forEach((card, index) => {
+           const record = JSON.parse(card.getAttribute('data-record'));
+           const csvRow = [
+             index + 1,
+             `"${record.sick_leave_period || '-'}"`,
+             `"${record.admission_period || '-'}"`,
+             `"${record.hospital_clinic || '-'}"`,
+             `"${record.department || '-'}"`,
+             `"${record.nature_of_injury || '-'}"`,
+             `"${record.date_of_medical_certificate || '-'}"`
+           ].join(',');
+           csvContent += csvRow + '\n';
+         });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `medical_records_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('CSV file downloaded successfully!', 'success');
+      }
+
+      function printResults() {
+        const printWindow = window.open('', '_blank');
+        const recordsContainer = document.getElementById('n8nRecordsContainer');
+        if (!recordsContainer) return;
+
+        const visibleCards = recordsContainer.querySelectorAll('.n8n-record-card:not(.filtered-out)');
+        let printContent = `
+          <html>
+            <head>
+              <title>Medical Records Report</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1 { color: #333; text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+                .print-date { text-align: center; margin-top: 20px; color: #666; }
+              </style>
+            </head>
+            <body>
+              <h1>Medical Records Report</h1>
+              <table>
+                <thead>
+                  <tr>
+                    <th>No.</th>
+                    <th>Sick Leave Period</th>
+                    <th>Hospitalization Period</th>
+                    <th>Hospital/Clinic</th>
+                    <th>Department</th>
+                    <th>Medical Condition</th>
+                    <th>Certificate Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        visibleCards.forEach((card, index) => {
+          const record = JSON.parse(card.getAttribute('data-record'));
+          printContent += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${record.sick_leave_period || '-'}</td>
+              <td>${record.admission_period || '-'}</td>
+              <td>${record.hospital_clinic || '-'}</td>
+              <td>${record.department || '-'}</td>
+              <td>${record.nature_of_injury || '-'}</td>
+              <td>${record.date_of_medical_certificate || '-'}</td>
+            </tr>
+          `;
+        });
+
+        printContent += `
+                </tbody>
+              </table>
+              <div class="print-date">
+                Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+              </div>
+            </body>
+          </html>
+        `;
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+        
+        showToast('Print dialog opened!', 'success');
+      }
+    </script>
+  </body>
+</html>
