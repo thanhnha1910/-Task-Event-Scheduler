@@ -1,0 +1,17 @@
+# Private files - keep local only
+README.md
+Court_order.html
+Sick_Letter Developed By Nick (1).json
+court-order-workflow.json
+test_frontend.html
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
